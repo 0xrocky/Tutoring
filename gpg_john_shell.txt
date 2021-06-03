@@ -1,0 +1,120 @@
+﻿LABORATORIO SICUREZZA
+
+Esercizi gpg
+
+Info utili:
+https://gnupg.org/
+https://it.wikipedia.org/wiki/GNU_Privacy_Guard
+man gpg
+https://github.com/MISP/MISP/issues/2372#issuecomment-452786029
+
+0x00) Creare un file clear.txt (il contenuto è irrilevante). Usando gpg, cifrare tale file con crittografia simmetrica utilizzando gli algoritmi AES, BLOWFISH e 3DES. I file cifrati devono essere salvati come cipher-[algoritmo].gpg (es: cipher-3DES.gpg).
+
+SOLUZIONE:
+	0. per creare un file usare il comando touch: clear.txt
+	1. per criptare il file appena creato lanciare il seguente comando (in questo esempio si farà uso dell'algoritmo AES): gpg --armor --output cipher-AES.gpg --cipher-algo AES --symmetric clear.txt
+	L'opzione:
+		--armor serve per specificare a gpg di forzare la generazione dell'output in formato ASCII
+		--output serve per salvare il contenuto generato in un file specifico
+		--cipher-algo specifica quale algoritmo utilizzare per cifrare un file
+		--symmetric serve per cifrare un testo tramite un algoritmo simmetrico, richiede una passphrase
+	2. questo esempio è valido anche per gli algoritmi BLOWFISH e 3DES, sostituendo il nome al posto di AES
+
+*****************************************************************************************************
+
+0x01) Decifrare i file creati nel precedente esercizio
+
+SOLUZIONE:
+	0. gpg --output clear.txt --decrypt cipher-[algoritmo].gpg
+	L'opzione:
+		--decrypt serve per decifrare il file specificato
+
+*****************************************************************************************************
+
+0x02) Creare nel sistema due nuovi utenti Alice e Bob e generare per entrambi una coppia di chiavi da 1024 bit
+
+SOLUZIONE:
+	0. per aggiungere un utente all'interno del sistema è necessario lanciare il comando adduser; il nome dell'utente inserito deve essere in minuscolo: 
+		adduser alice
+		adduser bob
+	1. aprire una shell per ciascun utente per facilitare l'esercizio (Ctrl+F2)
+	2. lanciare, per entrambi gli utenti, il comando: gpg --quiet --gen-key per generare una chiave tramite gpg; seguire le istruzioni per la creazione
+	3. per avere un elenco delle chiavi inserite utilizzare il comando: gpg --list-key
+	4. per sapere quale sia l'ID di una chiave (sia privata che pubblica) si possono elencare le chiavi e individuare l'ID della chiave desiderata
+
+*****************************************************************************************************
+
+0x03) Dall'utente Alice esportare la chiave pubblica appena creata. Fare lo stesso dall'utente Bob. Dall'utente Alice importare la chiave pubblica di Bob, controllarne la fingerprint e firmarla con la chiave pubblica di Alice. Effettuare le stesse operazioni invertendo gli utenti.
+
+SOLUZIONE:
+	0. aprire una shell per ciascun utente per facilitare l'esercizio
+	1. per esportare la propria chiave pubblica, Alice deve lanciare il seguente comando: gpg --armor --output alice.gpg --export UserID
+	2. per importare la chiave pubblica di Bob, Alice deve lanciare il seguente comando: gpg --import bob.gpg
+	3. ora è necessario testare la fingerprint e per farlo Alice deve lanciare il seguente comando: gpg --edit-key bob@mail
+	4. Alice deve utilizzare il comando fpr per leggere la fingerprint
+	5. Alice deve utilizzare il comando sign per firmare la chiave pubblica appena importata
+	6. Alice deve infine eseguire il comando check per verificare che l'operazione di firma della chiave sia andata a buon fine
+	7. Bob esegue le stesse operazioni
+
+*****************************************************************************************************
+
+0x04) Dall'utente Alice creare il file sign-text.txt (il contenuto è irrilevante). Firmare il file con i metodi sign, clearsign e detach salvando l'output nei rispettivi file sign.sig, clearsign.sig, detach.sig. Dall'utente Bob verificare le firme sui tre file.
+
+SOLUZIONE:
+	0. Alice deve creare un file con il comando touch, ad esempio: sign-text.txt
+	1. Alice deve eseguire il seguente comando per utilizzare il metodo sign: gpg --output sign.sig --sign sign-text.txt
+	2. Alice deve eseguire il seguente comando per utilizzare il metodo clearsign: gpg --output clearsign.sig --clearsign sign-text.txt
+	3. Alice deve eseguire il seguente comando per utilizzare il metodo detach: gpg --output detach.sig --detach-sign sign-text.txt
+	4. copiare i file all'interno di una directory di Bob
+	5. Bob deve lanciare i seguenti comandi per verificare le firme (detach necessita anche del file originale per la verifica, essendo il file di firma separato):
+		gpg --verify sign.sig
+		gpg --verify clearsign.sig
+		gpg --verify detach.sig sign-text.txt
+
+*****************************************************************************************************
+
+0x05) Dall'utente Alice creare il file encrypt-test.txt (il contenuto è irrilevante). Criptare il file con la chiave pubblica di Bob salvando l'output nel file encrypt-test.txt.gpg. Dall'utente Bob decifrare il file.
+
+SOLUZIONE:
+	0. Alice deve creare un file con il comando: touch encrypt-test.txt
+	1. Alice deve cifrare il file con il comando: gpg --output encrypt-test.txt.gpg --encrypt --recipient bob@mail encrypt-test.txt
+	L'opzione:
+		--recipient utilizza l'UserID associato a una chiave, serve a gpg per specificare con quale chiave si vuole criptare il file	
+	2. Bob deve decifrare il file con il comando: gpg --output encrypt-test.txt --decrypt encrypt-test.txt.gpg
+
+*****************************************************************************************************
+
+0x06) Dall'utente Alice creare il file sign-encrypt-test.txt (il contenuto è irrilevante). Criptare il file con la chiave pubblica di Bob e firmarlo, salvando l'output nel file sign-encrypt-test.txt.gpg. Dall'utente Bob decifrare il file e verificare la firma.
+
+SOLUZIONE:
+	0. Alice deve creare un file con il comando: touch sign-encrypt-test.txt
+	1. Alice deve cifrare e firmare il file con il comando: gpg --output sign-encrypt-test.txt.gpg --sign --encrypt --recipient bob@mail sign-encrypt-test.txt
+	2. Bob deve decifrare il file e verificare la firma con il comando: gpg --output sign-encrypt-test.txt --decrypt sign-encrypt-test.txt.gpg
+
+*****************************************************************************************************
+
+Su virtual machine problemi, dopo la creazione di due utenti, nell'apertura di un nuovo terminale e creazione della coppia di chiavi con gpg?
+Il terminale appartiene ancora all'utente precedente che ha lanciato la login. Eseguire tmux o screen nel terminale dell'utente appena loggato, così viene effettivamente allocato un nuovo tty per questo utente
+
+rocky@localhost$ su - demo
+demo@localhost$ gpg --gen-key
+...
+Key generation failed: Permission denied
+demo@localhost$ ls -l `tty`  # note still owned by "rocky"
+crw--w---- 1 rocky tty 136, 13 Jan  8 20:30 /dev/pts/1
+demo@localhost$ tmux
+[tmux: demo@localhost]$ ls -l `tty` # now owned by "demo"
+crw--w---- 1 demo tty 136, 22 Jan  8 20:31 /dev/pts/2
+[tmux: demo@localhost]$ gpg --gen-key  # this works as desired
+
+*****************************************************************************************************
+
+John The Ripper
+
+$ sudo apt-get install john
+$ unshadow /etc/passwd /etc/shadow > passwordcheck -> estrazione delle password di sistema
+$ john -wordfile:password -rules passwordcheck -> modalità Wordlist (dizionario)
+$ john -single passwordcheck -> modalità SingleCrack
+$ john -incremental:alpha passwordcheck -> modalità Incremental (brute force)
+$ john -show passwordcheck -> mostrare le password trovate finora
+$ john -restore -> ripristinare la fase di cracking
